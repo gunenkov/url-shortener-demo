@@ -1,0 +1,4 @@
+builders:
+  hosts: 127.0.0.1 #localhost
+clouds:
+  hosts: 147.45.109.93 # ip адрес облака

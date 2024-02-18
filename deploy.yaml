@@ -1,0 +1,50 @@
+- hosts: builders
+  # Ansible может не увидеть виртуальное окружение при подключении по SSH к тому же серверу
+  vars:
+    - ansible_python_interpreter: /home/dev/nestjs/url-shortener/venv/bin/python3
+  tasks:
+    - name: build app image
+      community.docker.docker_image:
+        name: url-shortener
+        build:
+          path: /home/dev/nestjs/url-shortener
+        source: build
+        state: present
+          
+    - name: archive image
+      community.docker.docker_image:
+        name: url-shortener
+        archive_path: ./url-shortener.tar
+        source: pull
+        state: present
+    
+- hosts: clouds
+  tasks:
+    - name: install docker
+      snap:
+        name: docker
+    
+    - name: copy image
+      copy:
+        src: /root/url-shortener.tar
+        dest: /root/url-shortener.tar
+    
+    - name: copy compose config
+      copy:
+        src: /home/dev/nestjs/url-shortener/docker-compose-cloud.yaml
+        dest: ./docker-compose-cloud.yaml
+    
+    - name: copy env
+      copy:
+        src: /home/dev/nestjs/url-shortener/.env
+        dest: ./.env
+    
+    - name: load image
+      docker_image:
+        name: url-shortener
+        load_path: /root/url-shortener.tar
+        state: present
+        source: load
+
+    - name: compose up
+      shell: docker-compose -f docker-compose-cloud.yaml up -d

@@ -1,0 +1,27 @@
+# Система контроля версий и .dockerignore
+.git
+.gitignore
+.dockerignore
+
+# Файлы сборок и пакеты
+dist
+node_modules
+
+# Файл с переменными окружения
+.env
+
+# Файлы, которые не нужны для запуска контейнера
+.editorconfig
+Dockerfile
+README.md
+.eslintrc.js
+
+# Ansible
+venv
+inventory.yaml
+ansible.cfg
+deploy.yaml
+
+# Данные
+pg_data
+redis_data

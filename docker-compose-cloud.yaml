@@ -1,0 +1,57 @@
+version: '3.5'
+
+services:
+  # сервис PostgreSQL
+  postgresql:
+    # указываем базовый образ
+    image: postgres
+    # указываем, что контейнер следует заново запускать в случае установки
+    restart: always
+    # указываем имя контейнера
+    container_name: postgresql
+    # настраиваем переменные окружения (будет подстановка из файла .env) при запуске сервисов
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    # создаем соответствие между папкой контейнера и папкой на хосте (для сохранения данных в БД после выключения контейнера)
+    volumes:
+      - ./pg_data:/var/lib/postgresql/data
+    # создаем соответствие между портом 5432 контейнера (где запущен PostgreSQL) и одноименным портом на хостовой машине
+    ports:
+      - '5432:5432'
+
+  # наше приложение на NestJS
+  url-shortener:
+    image: url-shortener
+    # указываем имя контейнера
+    container_name: url-shortener
+    # создаем соответствие между портами
+    ports:
+      - '3001:3000'
+    # указываем, после запуска каких сервисов будет запускаться приложение
+    depends_on:
+      - postgresql
+
+  # сервис pgAdmin для управления базами данных
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    container_name: pgadmin4
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgresql
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+
+  # Redis для поддержки системы очередей BullMQ
+  redis:
+    image: redis
+    restart: always
+    container_name: redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - ./redis_data:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
